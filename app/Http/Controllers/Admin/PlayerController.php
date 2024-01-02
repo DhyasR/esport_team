@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Team;
 use App\Models\Player;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PlayerController extends Controller
 {
@@ -34,34 +35,21 @@ class PlayerController extends Controller
 
     public function storePlayer(Request $request)
     {
-        dd($_POST);
-        $validatedData = $request->validate(
-            [
-                'player_name' => 'required|unique:players|max:125',
-                'email' => 'required|email',
-                'phone' => 'required',
-                'player_note' => 'required',
-                'player_image' => 'image',
-                'team_id' => 'required'
-            ]
-        );
-
-        if ($request->file('player_image')) {
-            $validatedData['player_image'] = $request->file('player_image')->store('image');
-        }
+        $playerImage = $request->file('player_image')->store('image', ['disk' => 'public']);
 
         Player::create(
             [
-                'player_name' => $validatedData['player_name'],
-                'email' => $validatedData['email'],
-                'phone' => $validatedData['phone'],
-                'player_note' => $validatedData['player_note'],
-                'player_image' => $validatedData['player_image'] ?? null,
-                'team_id' => $validatedData['team_id'],
+                'player_name' => $request->player_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'player_note' => $request->player_note,
+                'player_image' => $playerImage,
+                'team_id' => $request->team_id,
             ]
         );
 
-        return redirect('home')->with('success', 'Player Added Successfully!');
+
+        return redirect()->route('player.showAll')->with('success', 'Player Added Successfully!');
     }
 
     public function editPlayer(Player $player)
@@ -78,6 +66,16 @@ class PlayerController extends Controller
 
     public function updatePlayer(Request $request, Player $player)
     {
+        if ($request->hasFile('player_image')) {
+            if ($request->oldImage) {
+                Storage::disk('public')->delete($request->oldImage);
+            }
+
+            $playerImage = $request->file('player_image')->store('image', ['disk' => 'public']);
+        } else {
+            $playerImage = $request->oldImage;
+        }
+
         $player->update(
             [
                 'player_name' => $request->player_name,
@@ -85,16 +83,21 @@ class PlayerController extends Controller
                 'phone' => $request->phone,
                 'player_note' => $request->player_note,
                 'team_id' => $request->team,
+                'player_image' => $playerImage
             ]
         );
 
-        return redirect()->route('home');
+        return redirect()->route('player.showAll');
     }
 
     public function destroyPlayer(Player $player)
     {
+        if ($player->player_image) {
+            Storage::disk('public')->delete($player->player_image);
+        }
+
         $player->delete();
 
-        return redirect()->route('home');
+        return redirect()->route('player.showAll');
     }
 }

@@ -52,9 +52,9 @@
 
         <div class="mb-3">
 
-            <label for="team" class="form-label">Select Team</label>
+            <label for="team_id" class="form-label">Select Team</label>
 
-            <select name="team" id="team" class="form-select" required>
+            <select name="team_id" id="team_id" class="form-select" required>
 
                 @foreach ($teams as $team)
                     <option value="{{ $team->id }}">{{ $team->team_name }}</option>
@@ -69,14 +69,14 @@
     </form>
 
     <script>
-        function priviewImage() {
+        function previewImage() {
             const image = document.querySelector('#player_image');
             const imgPreview = document.querySelector('.img-preview');
 
             imgPreview.style.display = 'block';
 
             const ofReader = new FileReader();
-            ogReader.readAsDataURL(image.files[0]);
+            ofReader.readAsDataURL(image.files[0]);
 
             ofReader.onload = function(oFREvent) {
                 imgPreview.src = oFREvent.target.result;
